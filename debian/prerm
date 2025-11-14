@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    remove|deconfigure)
+        for instance in $(systemctl list-units --all --no-legend 'snoopy@*.service' | awk '{print $1}'); do
+            systemctl stop "$instance" || true
+            systemctl disable "$instance" || true
+        done
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,18 @@
+[package]
+name = "snoopy-ebpf"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+snoopy-common = { path = "../snoopy-common" }
+
+aya-ebpf = { workspace = true }
+aya-log-ebpf = { workspace = true }
+network-types = "0.1.0"
+
+[build-dependencies]
+which = { workspace = true }
+
+[[bin]]
+name = "snoopy"
+path = "src/main.rs"

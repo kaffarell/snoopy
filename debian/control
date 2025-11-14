@@ -1,0 +1,8 @@
+Package: snoopy
+Version: 1.0.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Maintainer: Gabriel Goller <g.goller@proxmox.com>
+Description: Snoopy
+    Snoops ARP Requests and inserts neighbors on bridge.

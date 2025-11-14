@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        systemctl daemon-reload
+        echo "Service template installed."
+        echo "Enable and start instances with:"
+        echo "  systemctl enable --now snoopy@source-interface:target-interface.service"
+        echo "Example:"
+        echo "  systemctl enable --now snoopy@eth1:eth2.service"
+        ;;
+esac
+
+exit 0

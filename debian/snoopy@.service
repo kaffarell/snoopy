@@ -1,0 +1,21 @@
+[Unit]
+Description=Snoop ARP traffic and insert neighbor entries on bridges for EVPN advertisement
+After=network.target
+
+[Service]
+Type=simple
+# this allows us to pass e.g. eth1:eth2 as an argument, which means eth1 as
+# source interface and eth2 as target interface
+ExecStart=/bin/sh -c '/usr/local/bin/snoopy $(echo "%i" | cut -d: -f1) $(echo "%i" | cut -d: -f2)'
+Restart=on-failure
+RestartSec=5s
+
+User=root
+Group=root
+
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_NET_ADMIN CAP_BPF CAP_PERFMON
+AmbientCapabilities=CAP_SYS_ADMIN CAP_NET_ADMIN CAP_BPF CAP_PERFMON
+
+[Install]
+WantedBy=multi-user.target
+
