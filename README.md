@@ -25,48 +25,49 @@ install corresponding neighbor entries on the bridge. FRR will then detect
 these neighbors and advertise them via EVPN Type-2 routes.
 
 ```
-                  ┌────────────────────────┐  ┌──────────────────────┐  
-                  │ Control Plane          │  │ Data Plane           │  
-                  │                        │  │                      │  
-                  │                        │  │                      │  
-┌─────────────────│────────────────────────│──│──────────────────────│─┐
-│ Node1           │                        │  │                      │ │
-│                 │                        │  │                      │ │
-│                 │                        │  │                      │ │
-│  ┌────────────┐ │        ┌──────┐        │  │  ┌───────────────┐   │ │
-│  │VM interface├─┼───────►│bridge│◄───────┼──┼──┤VXLAN interface│   │ │
-│  └────────────┘ │        └──┬───┘        │  │  └──────┬────────┘   │ │
-│   192.168.1.20  │           │            │  │         │            │ │
-│                 │           │            │  │         │            │ │
-│                 │           │            │  │         │            │ │
-│                 │           │            │  │         │            │ │
-└─────────────────│───────────┼────────────│──│─────────┼────────────│─┘
-                  │           │            │  │         │            │  
-                  │           │            │  │         │            │  
-                  │           │BGP EVPN    │  │         │VXLAN tunnel│  
-                  │           │            │  │         │            │  
-┌─────────────────│───────────┼────────────│──│─────────┼────────────│─┐
-│ Node2           │           │            │  │         │            │ │
-│                 │           │            │  │         │            │ │
-│                 │           │            │  │         │            │ │
-│   192.168.1.10  │           │            │  │         │            │ │
-│  ┌────────────┐ │        ┌──┴───┐        │  │   ┌─────┴─────────┐  │ │
-│  │VM interface├─┼───────►│bridge│◄───────┼──┼───┤VXLAN interface│  │ │
-│  └────────────┘ │        └──────┘        │  │   └───────────────┘  │ │
-│                 │                        │  │                      │ │
-│        │        │           ▲            │  │           ▲          │ │
-│        │        │           │            │  │           │          │ │
-└────────┼────────│───────────┼────────────│──│───────────┼──────────│─┘
-         │        │           │            │  │           │          │  
-         │        └───────────┼────────────┘  └───────────┼──────────┘  
-         │                    │                           │             
-         │                    │                           │             
-         │                    │                           │             
-         │                    │                           │             
-         │                                                │             
-         │ ARP Request     Intercept ARP       ARP request│             
-         └──────────────►  msg here and    ───────────────┘             
-                           inject into bridge
+                  ┌────────────────────────┐  ┌─────────────────────────┐  
+                  │ Control Plane          │  │ Data Plane              │  
+                  │                        │  │                         │  
+                  │                        │  │                         │  
+┌─────────────────│────────────────────────│──│─────────────────────────┼─┐
+│ Node1           │                        │  │                         │ │
+│                 │                        │  │                         │ │
+│                 │                        │  │                         │ │
+│  ┌────────────┐ │        ┌──────┐        │  │  ┌───────────────┐      │ │
+│  │VM interface├─┼───────►│bridge│◄───────┼──┼──┤VXLAN interface│      │ │
+│  └────────────┘ │        └──┬┬──┘        │  │  └──────┬┬───────┘      │ │
+│   192.168.1.20  │           ││           │  │         ││              │ │
+│                 │           ││           │  │         ││              │ │
+│                 │           ││           │  │         ││              │ │
+│                 │           ││           │  │         ││              │ │
+└─────────────────│───────────┼┼───────────│──│─────────┼┼──────────────┼─┘
+                  │           ││           │  │         ││              │  
+                  │           ││           │  │         ││              │  
+                  │           ││BGP EVPN   │  │         ││VXLAN tunnel  │  
+                  │           ││           │  │         ││              │  
+┌─────────────────│───────────┼┼───────────│──│─────────┼┼──────────────┼─┐
+│ Node2           │           ││           │  │         ││              │ │
+│                 │           ││           │  │         ││              │ │
+│                 │           ││           │  │         ││              │ │
+│   192.168.1.10  │           ││           │  │         ││              │ │
+│  ┌────────────┐ │        ┌──┴┴──┐        │  │   ┌─────┴┴────────┐     │ │
+│  │VM interface├─┼───────►│bridge│◄───────┼──┼───┤VXLAN interface│     │ │
+│  └────────────┘ │        └──────┘        │  │   └───────────────┘     │ │
+│                 │                        │  │                         │ │
+│        │        │           ▲            │  │           ▲             │ │
+│        │        │           │            │  │           │             │ │
+└────────┼────────│───────────┼────────────│──│───────────┼─────────────┼─┘
+         │        │           │            │  │           │             │  
+         │        └───────────┼────────────┘  └───────────┼─────────────┘  
+         │                    │                           │                
+         │                    │                           │                
+         │                    │                           │                
+         │                    │                           │                
+         │                                                │                
+         │ ARP Request     Intercept ARP       ARP request│                
+         └──────────────►  msg here and  ─────────────────┘                
+                           inject into                                     
+                           neighbors
 ```
 
  Traffic Flow Example (VM on Node2 pings VM on Node1):
@@ -80,16 +81,32 @@ these neighbors and advertise them via EVPN Type-2 routes.
     - FRR doesn't advertise 192.168.1.10 via EVPN
     - Other nodes don't know about the VM's IP (and send an arp request, even
       though they already have the MAC-Address)
-    - So: frames skip the "bridge" and go directly from "VM interface" to
-      "VXLAN interface"
+```
+    Route Distinguisher: 172.16.6.2:2
+ *>i [2]:[0]:[48]:[bc:24:11:76:c2:57]
+                    172.16.6.2(Node2)
+                                                  100      0 i
+                    RT:65000:500 ET:8
+```
+
 
  3. WITH snoopy:
     - Snoopy detects ARP request from VM
     - Creates neighbor entry on bridge: 192.168.1.10 -> VM's MAC
-    - FRR sees neighbor entry and advertises EVPN Type-2 route
+    - FRR sees neighbor entry and advertises EVPN Type-2 route with IP-Address
     - Full EVPN fabric awareness achieved
-    - So: we intercept the frames going from "VM interface" to "VXLAN
-      interface" and add them manually to bridge
+
+```
+    Route Distinguisher: 172.16.6.2:2
+ *>i [2]:[0]:[48]:[bc:24:11:76:c2:57]
+                    172.16.6.2(Node2)
+                                                  100      0 i
+                    RT:65000:500 ET:8
+ *>i [2]:[0]:[48]:[bc:24:11:76:c2:57]:[32]:[192.168.1.10]
+                    172.16.6.2(Node2)
+                                                  100      0 i
+                    RT:65000:500 RT:65000:1000 ET:8 MM:1 Rmac:72:7e:0f:90:cd:2c
+```
 
 ## Prerequisites
 
