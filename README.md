@@ -9,15 +9,16 @@ CumulusNetworks' `neighmgrd` daemon.
 ## Why
 In a typical EVPN setup, a bridge connects at least two ports: a VM (or
 container) and a VXLAN interface that tunnels traffic to other nodes in the
-EVPN zone. FRR only advertises neighbor entries that exist directly on the
-bridge.
+EVPN zone. FRR advertises neighbor entries that exist directly on the
+bridge and FDB entries on the bridge.
 
 The issue: when pinging a VM on the same subnet but on a different node, the
 bridge forwards traffic directly to the VXLAN interface without creating a
 neighbor entry -- only an FDB entry is created on the VXLAN interface. The
 bridge only creates neighbor entries when it directly receives ARP queries,
 such as when traffic is destined for a different subnet where the bridge serves
-as the gateway.
+as the gateway. This means the EVPN type 2 route created only contains a
+MAC-Address and no IP-Address.
 
 The solution is to monitor ARP requests originating from the VM and manually
 install corresponding neighbor entries on the bridge. FRR will then detect
@@ -77,7 +78,8 @@ these neighbors and advertise them via EVPN Type-2 routes.
  2. WITHOUT snoopy:
     - Bridge has NO neighbor entry for 192.168.1.10
     - FRR doesn't advertise 192.168.1.10 via EVPN
-    - Other nodes don't know about this VM (and will flood packets to all other Nodes)
+    - Other nodes don't know about the VM's IP (and send an arp request, even
+      though they already have the MAC-Address)
     - So: frames skip the "bridge" and go directly from "VM interface" to
       "VXLAN interface"
 
