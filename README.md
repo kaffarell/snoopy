@@ -115,5 +115,3 @@ activate by prefixing commands with `PATH=~/.cargo/bin/:$PATH` (I have a funky
 fish script which does it for me and prefixes every command with this
 override).
 
-## Todo
-- [ ] Snoop replies instead of requests (This protects us a bit against arp-spoofing because of arp_announce)
