@@ -134,3 +134,7 @@ activate by prefixing commands with `PATH=~/.cargo/bin/:$PATH` (I have a funky
 fish script which does it for me and prefixes every command with this
 override).
 
+## Todo
+
+* switch to tc programtype? -> give access to bridge ports from where the packet comes
+* check if rewriting is ok?

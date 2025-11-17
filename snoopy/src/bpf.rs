@@ -1,3 +1,5 @@
+use std::os::fd::AsRawFd;
+
 use anyhow::Context as _;
 use aya::{
     maps::{MapData, perf::PerfEventArray},
@@ -6,10 +8,9 @@ use aya::{
 };
 use log::{debug, error, info};
 use snoopy_common::ArpRequestInfo;
-use std::os::fd::AsRawFd;
 use tokio::{io::unix::AsyncFd, signal};
 
-use crate::netlink::netlink_add_neighbor;
+use crate::netlink::NetlinkManager;
 
 pub async fn attach(
     source_interface: String,
@@ -81,18 +82,13 @@ async fn run(
                     let data = unsafe { ptr.read_unaligned() };
                     debug!("ARP request intercepted: {:?}", data);
 
-                    if let Err(err) =
-                        netlink_add_neighbor(&target_interface, data.src_ip.into(), data.src_mac)
-                            .await
-                    {
-                        error!("error inserting neighbor: {err:#}");
+                    match check_and_insert_neighbor(data, target_interface.clone()).await {
+                        Ok(()) => {}
+                        Err(err) => {
+                            error!("error when inserting neighbor into netlink: {err:#}");
+                            continue;
+                        }
                     }
-                    info!(
-                        "inserted neighbor: {} - {} on dev {}",
-                        data.src_ip.map(|s| format!("{s}")).join("."),
-                        data.src_mac.map(|s| format!("{:x}", s)).join(":"),
-                        target_interface
-                    );
                 }
                 guard.clear_ready();
             }
@@ -103,6 +99,26 @@ async fn run(
     println!("Waiting for Ctrl-C...");
     ctrl_c.await?;
     println!("Exiting...");
+
+    Ok(())
+}
+
+async fn check_and_insert_neighbor(
+    data: ArpRequestInfo,
+    target_interface: String,
+) -> Result<(), anyhow::Error> {
+    let netlink_manager = NetlinkManager::new().context("error connecting to netlink")?;
+
+    netlink_manager
+        .add_neighbor(&target_interface, data.src_ip.into(), data.src_mac)
+        .await
+        .context("error inserting neighbor")?;
+    info!(
+        "inserted neighbor: {} - {} on dev {}",
+        data.src_ip.map(|s| format!("{s}")).join("."),
+        data.src_mac.map(|s| format!("{:x}", s)).join(":"),
+        target_interface
+    );
 
     Ok(())
 }
